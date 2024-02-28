@@ -1,0 +1,30 @@
+import numpy as np
+
+n_rows, n_cols = 3, 4
+grid_world = np.zeros((n_rows, n_cols))
+rewards = {(0, 3): 10, (1, 3): -10}
+gamma = 0.9
+actions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+action_names = ['Right', 'Left', 'Down', 'Up']
+
+def bellman_update(i, j, a):
+    if (i, j) in rewards: return rewards[(i, j)]
+    return sum(0.25 * (grid_world[i + di, j + dj] * gamma) 
+    for a, (di, dj) in enumerate(actions) 
+    if 0 <= i + di < n_rows and 0 <= j + dj < n_cols)
+
+for _ in range(100):
+    new_grid_world = np.array([[max([bellman_update(i, j, a) for a in actions]) 
+    for j in range(n_cols)] 
+    for i in range(n_rows)])
+    grid_world = new_grid_world
+
+optimal_policy = np.array([[(("Cheese" if rewards.get((i, j), 0) > 0 else "Penalty") 
+if (i, j) in rewards 
+                             else action_names[np.argmax([bellman_update(i, j, a) for a in actions])]) 
+                             for j in range(n_cols)] 
+                           for i in range(n_rows)])
+
+print("Optimal Policy:")
+for i in range(n_rows):
+    print(" | ".join(f"{optimal_policy[i, j]:^8}" if (i, j) in rewards else f"{optimal_policy[i, j]:<8}" for j in range(n_cols)))
